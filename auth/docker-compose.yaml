@@ -1,0 +1,44 @@
+# @format
+
+version: "3.8"
+
+networks:
+    auth-net:
+        name: auth-net
+        driver: bridge
+
+volumes:
+    postgres:
+
+services:
+    postgres:
+        image: postgres:13
+        container_name: postgres
+        restart: on-failure
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
+        ports:
+            - "5433:5432" # localhost:5433 ➔ container:5432
+        volumes:
+            - postgres:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+        networks:
+            - auth-net
+
+    pgadmin:
+        image: dpage/pgadmin4
+        container_name: pgadmin
+        restart: on-failure
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@example.com
+            PGADMIN_DEFAULT_PASSWORD: admin
+        ports:
+            - "5050:80"
+        networks:
+            - auth-net
