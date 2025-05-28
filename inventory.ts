@@ -50,6 +50,10 @@ function sellStock(initialStock: Stock, sellStock: Stock) {
         convertStockToMilligrams(initialStock);
     const sellStockInMilligrams: number = convertStockToMilligrams(sellStock);
 
+    if (sellStockInMilligrams > initialStockInMilligrams) {
+        throw new Error("sellStockInMilligrams > initialStockInMilligrams");
+    }
+
     const updatedStockInMilligrams: number =
         initialStockInMilligrams - sellStockInMilligrams;
 
