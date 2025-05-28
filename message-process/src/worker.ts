@@ -2,8 +2,10 @@
 
 import boss from "./pgBoss";
 import processNextMessage from "./jobPorcessor";
+import dotenv from "dotenv";
+dotenv.config();
 
-const QUEUE = "readme-queue";
+const QUEUE = process.env.QUEUE || "readme-queue";
 
 async function startWorker() {
     await boss.start();
@@ -11,7 +13,12 @@ async function startWorker() {
 
     await boss.work(QUEUE, async () => {
         console.log(`Processing next message...`);
-        await processNextMessage();
+        try {
+            await processNextMessage();
+        } catch (err) {
+            console.error("Job failed:", err);
+            throw err;
+        }
     });
 
     console.log(`Worker started for queue: ${QUEUE}`);
