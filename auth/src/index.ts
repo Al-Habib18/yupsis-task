@@ -20,7 +20,7 @@ app.get("/hello", (_req, res) => {
     res.json({ message: "hello world" });
 });
 // Use combined routes
-app.use(routes);
+app.use("/auth", routes);
 
 /* app.use("/*", (req: Request, res: Response) => {
     console.log("req_url:-", req.url);
