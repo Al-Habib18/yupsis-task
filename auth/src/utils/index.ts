@@ -24,22 +24,21 @@ const hasMatched = async (raw: string, hash: string) => {
     return result;
 };
 
-const getAccessToken = (data: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-}) => {
-    const accessToken = jwt.sign(
+const generateToken = (data: { id: string; email: string; name?: string }) => {
+    const token = jwt.sign(
         {
             userId: data.id,
             email: data.email,
             name: data.name,
-            // role: data.role,
         },
         process.env.JWT_SECRET ?? "My_Secret_Key",
         { expiresIn: "1h" }
     );
+    return token;
+};
+
+const getAccessToken = (data: { id: string; email: string; name: string }) => {
+    const accessToken = generateToken(data);
     return accessToken;
 };
 
@@ -73,6 +72,7 @@ export {
     generateVerificationCode,
     generateHash,
     hasMatched,
+    generateToken,
     getAccessToken,
     decodeToken,
     getTokenExpiration,

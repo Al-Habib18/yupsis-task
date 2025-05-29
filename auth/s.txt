@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -45,8 +45,8 @@ model VerificationCode {
   email      String
   otp        String
   type       VerificationCodeType
-  verified   Boolean  @default(false)
   expiresAt  DateTime
+  verified   Boolean  @default(false)
   createdAt  DateTime @default(now())
 
   user       User?    @relation(fields: [email], references: [email])

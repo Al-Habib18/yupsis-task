@@ -6,7 +6,7 @@ const router = Router();
 import {
     registrationController,
     loginController,
-    // logoutController,
+    logoutController,
     refreshTokenController,
     otpSentRegistrationController,
     otpVerifyRegistrationController,
@@ -18,8 +18,8 @@ import {
 
 router.post("/registration", registrationController);
 router.post("/login", loginController);
-// router.post("/logout", logoutController);
-// router.get("/refresh-token/:refreshToken", refreshTokenController);
+router.post("/logout/:refreshToken", logoutController);
+router.get("/refresh-token/:refreshToken", refreshTokenController);
 
 router.post("/otp/sent/registration", otpSentRegistrationController);
 router.post("/otp/verify/registration", otpVerifyRegistrationController);

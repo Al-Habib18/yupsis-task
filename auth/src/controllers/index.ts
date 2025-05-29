@@ -2,6 +2,7 @@
 
 import registrationController from "./registration";
 import loginController from "./login";
+import logoutController from "./logout";
 import refreshTokenController from "./refreshToken";
 
 import otpSentRegistrationController from "./otpSentRegistration";
@@ -16,6 +17,7 @@ import otpVerifyForgotPasswordController from "./otpVerifyForgotPassword";
 export {
     registrationController,
     loginController,
+    logoutController,
     refreshTokenController,
     otpSentRegistrationController,
     otpVerifyRegistrationController,

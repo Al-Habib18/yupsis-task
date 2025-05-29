@@ -1,8 +1,8 @@
 /** @format */
 
 import prisma from "../schemas/prisma";
-import jwt from "jsonwebtoken";
-import { generateVerificationCode } from "../utils";
+import { VerificationCodeType, AccountStatus } from "@prisma/client";
+import { generateVerificationCode, generateToken } from "../utils";
 
 const getExitingUser = async (email: string) => {
     const user = await prisma.user.findUnique({ where: { email } });
@@ -25,15 +25,13 @@ const createUser = async (data: {
                 name: data.name,
                 email: data.email,
                 password: data.password,
-                termsAndConditions: data.termsAndConditions,
             },
             select: {
                 id: true,
                 email: true,
                 name: true,
-                role: true,
                 status: true,
-                verified: true,
+                isVerified: true,
             },
         });
         return user;
@@ -43,14 +41,49 @@ const createUser = async (data: {
     }
 };
 
-const createVerifiactionCode = async (userId: string) => {
+// update user to active status
+const updateUserAccountStatus = async (
+    id: string,
+    accountStatus: AccountStatus
+) => {
+    try {
+        const user = await prisma.user.update({
+            where: { id: id },
+            data: { status: accountStatus },
+        });
+        return user;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+};
+
+const updateUserToVerified = async (id: string) => {
+    try {
+        const user = await prisma.user.update({
+            where: { id: id },
+            data: { isVerified: true },
+        });
+        return user;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+};
+// update user to verified status
+const createVerifiactionCode = async (
+    email: string,
+    type: VerificationCodeType
+) => {
     try {
         const code = generateVerificationCode();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
         const verificationCode = await prisma.verificationCode.create({
             data: {
-                userId: userId,
-                code,
-                expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24 hours
+                otp: code,
+                email: email,
+                expiresAt: expiresAt,
+                type: type,
             },
         });
         return verificationCode;
@@ -60,12 +93,12 @@ const createVerifiactionCode = async (userId: string) => {
     }
 };
 
-const getVerificationCode = async (userId: string, code: string) => {
+const getVerificationCode = async (email: string, code: string) => {
     try {
         const verificationCode = await prisma.verificationCode.findFirst({
             where: {
-                userId: userId,
-                code: code,
+                email: email,
+                otp: code,
             },
         });
         return verificationCode;
@@ -79,7 +112,7 @@ const updateVerificationCode = async (id: string) => {
     try {
         await prisma.verificationCode.update({
             where: { id: id },
-            data: { status: "USED", verifiedAt: new Date() },
+            data: { verified: true },
         });
         return true;
     } catch (error) {
@@ -88,10 +121,64 @@ const updateVerificationCode = async (id: string) => {
     }
 };
 
+const createRefreshToken = async (data: { id: string; email: string }) => {
+    try {
+        const token = generateToken(data);
+        const refreshToken = await prisma.refreshToken.create({
+            data: {
+                token: token,
+                userId: data.id,
+                email: data.email,
+            },
+        });
+        return refreshToken;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+};
+
+const getRefreshToken = async (token: string) => {
+    try {
+        const refreshToken = await prisma.refreshToken.findUnique({
+            where: { token: token },
+        });
+        return refreshToken;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+};
+
+const deleteRefreshToken = async (token: string) => {
+    console.log("token:-", token);
+    try {
+        const refreshToken = await prisma.refreshToken.findUnique({
+            where: { token: token },
+        });
+        if (!refreshToken) {
+            throw new Error("Refresh token not found");
+        }
+        await prisma.refreshToken.delete({ where: { token: token } });
+        return true;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+};
+
 export {
+    /* user */
     getExitingUser,
     createUser,
+    updateUserAccountStatus,
+    updateUserToVerified,
+    /* otp */
     createVerifiactionCode,
     getVerificationCode,
     updateVerificationCode,
+    /* refresh token */
+    createRefreshToken,
+    getRefreshToken,
+    deleteRefreshToken,
 };

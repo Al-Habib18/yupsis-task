@@ -22,14 +22,19 @@ app.get("/hello", (_req, res) => {
 // Use combined routes
 app.use("/auth", routes);
 
-/* app.use("/*", (req: Request, res: Response) => {
+/* app.use("*", (req, res) => {
     console.log("req_url:-", req.url);
     res.status(404).json({ message: "Route Not Found" });
-});
- */
+}); */
+
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     res.status(500).json({ message: err.message });
 });
+/* 
+app.use("*", (req, res) => {
+    console.log("req_url:-", req.url);
+    res.status(404).json({ message: "Route Not Found" });
+}); */
 
 const PORT = process.env.PORT || 3000;
 
