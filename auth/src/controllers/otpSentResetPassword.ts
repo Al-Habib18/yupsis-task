@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import { getExitingUser, createVerifiactionCode } from "../lib";
 import { VerificationCodeType } from "@prisma/client";
 import { emailSchema } from "../schemas";
+import sendOtpEmail from "../utils/email";
 const otpSentResetPasswordController = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
@@ -31,13 +32,13 @@ const otpSentResetPasswordController = async (req: Request, res: Response) => {
                 res.status(500).json({
                     message: "Error creating verification code",
                 });
+            } else {
+                // send email to user with otp using resend
+                sendOtpEmail(user.email, verificationCode.otp);
+                res.status(201).json({
+                    message: "Otp sent successfully",
+                });
             }
-
-            //TODO: send email to user using RabbitMQ or Resend
-
-            res.status(201).json({
-                message: "Otp sent successfully",
-            });
         }
     } catch (error) {
         console.log("Error in otpSent Reset Password Controller", error);

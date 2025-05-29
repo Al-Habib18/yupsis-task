@@ -5,7 +5,7 @@ import { default_email_sender } from "../config/default";
 import { getExitingUser, createVerifiactionCode } from "../lib";
 import { VerificationCodeType } from "@prisma/client";
 import { emailSchema } from "../schemas";
-import sendEmailToQueue from "../utils/emailQueue";
+import sendOtpEmail from "../utils/email";
 
 const otpSentRegistrationController = async (req: Request, res: Response) => {
     try {
@@ -36,7 +36,8 @@ const otpSentRegistrationController = async (req: Request, res: Response) => {
                 });
             }
 
-            //TODO: send email to user using RabbitMQ or Resend
+            // send email to user
+            sendOtpEmail(user.email, verificationCode?.otp || "");
 
             res.status(201).json({
                 message: "Otp sent successfully",
@@ -49,17 +50,3 @@ const otpSentRegistrationController = async (req: Request, res: Response) => {
 };
 
 export default otpSentRegistrationController;
-
-// //create mail option
-// const emailOption = {
-//     from: default_email_sender || "alhabib@gmail.com",
-//     to: user.email,
-//     subject: "user registration",
-//     text: `Your Verification code is ${verificationCode}`,
-//     source: "user_registration",
-// };
-
-// //call an mail servce to send an email
-// const exchacnge = "auth_exchange";
-// const queue = "registration";
-// sendEmailToQueue(exchacnge, queue, emailOption);

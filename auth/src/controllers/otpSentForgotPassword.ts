@@ -1,11 +1,10 @@
 /** @format */
 
 import { Request, Response } from "express";
-import { default_email_sender } from "../config/default";
 import { getExitingUser, createVerifiactionCode } from "../lib";
 import { VerificationCodeType } from "@prisma/client";
 import { emailSchema } from "../schemas";
-import sendEmailToQueue from "../utils/emailQueue";
+import sendOtpEmail from "../utils/email";
 
 const otpSentForgotPasswordController = async (req: Request, res: Response) => {
     try {
@@ -24,24 +23,24 @@ const otpSentForgotPasswordController = async (req: Request, res: Response) => {
         const user = await getExitingUser(email);
         if (!user) {
             res.status(400).json({ message: "Email does not  exists" });
+        } else {
+            //Implement verification logic
+            const verificationCode = await createVerifiactionCode(
+                user.email,
+                VerificationCodeType.FORGOT_PASSWORD
+            );
+            if (!verificationCode) {
+                res.status(500).json({
+                    message: "Error creating verification code",
+                });
+            } else {
+                //send email to user using  Resend
+                sendOtpEmail(user.email, verificationCode.otp);
+                res.status(201).json({
+                    message: "Otp sent successfully",
+                });
+            }
         }
-
-        //Implement verification logic
-        const verificationCode = await createVerifiactionCode(
-            user.email,
-            VerificationCodeType.FORGOT_PASSWORD
-        );
-        if (!verificationCode) {
-            res.status(500).json({
-                message: "Error creating verification code",
-            });
-        }
-
-        //TODO: send email to user using RabbitMQ or Resend
-
-        res.status(201).json({
-            message: "Otp sent successfully",
-        });
     } catch (error) {
         console.log("Error in otpSentRegistrationController", error);
         res.status(500).json({ message: "Internal Server Error" });
